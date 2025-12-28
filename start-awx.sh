@@ -1,13 +1,28 @@
 #!/bin/bash
 
+set -euo pipefail
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Error: '$1' is not installed or not on PATH. Please install it and re-run this script." >&2
+    exit 1
+  }
+}
+
+require_cmd k3d
+require_cmd kubectl
+
 echo "Creating k3d cluster 'awx-cluster'..."
 k3d cluster create awx-cluster --servers 1 --agents 1 -p "8080:80@loadbalancer"
 
 echo "Deploying AWX Operator..."
 kubectl apply -k "github.com/ansible/awx-operator/config/default?ref=2.12.2"
 
-echo "Waiting for AWX Operator to be ready..."
-kubectl wait --for=condition=Ready pods --all -n awx --timeout=300s
+echo "Ensuring 'awx' namespace exists..."
+kubectl create namespace awx --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Waiting for AWX Operator to be ready in namespace 'awx' (timeout 300s)..."
+kubectl wait --for=condition=Ready pods --all -n awx --timeout=300s || true
 
 echo "Creating AWX Deployment..."
 cat <<EOF | kubectl apply -f -
