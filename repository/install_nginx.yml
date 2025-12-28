@@ -1,0 +1,23 @@
+---
+- name: Setup Nginx Web Server
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  become: yes  # Root access required to install packages
+  tasks:
+    - name: Update package cache (Ubuntu/Debian only)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure Nginx is installed
+      package:
+        name: nginx
+        state: present
+
+    - name: Ensure Nginx is running and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+      ignore_errors: yes # In containers without systemd, this might fail, but installation works.
