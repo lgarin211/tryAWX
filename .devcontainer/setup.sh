@@ -7,7 +7,7 @@ echo "Starting setup..."
 echo "Installing Ansible..."
 sudo apt-get update
 sudo apt-get install -y software-properties-common pip
-pip install ansible
+pip install ansible --break-system-packages
 ansible --version
 
 # Install kubectl

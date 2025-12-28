@@ -33,7 +33,7 @@ echo "Creating k3d cluster 'awx-cluster'..."
 k3d cluster create awx-cluster --servers 1 --agents 1 -p "8080:80@loadbalancer"
 
 echo "Deploying AWX Operator..."
-kubectl apply -k "github.com/ansible/awx-operator/config/default?ref=2.12.2"
+kubectl apply -k "github.com/ansible/awx-operator/config/default?ref=2.19.1"
 
 echo "Ensuring 'awx' namespace exists..."
 kubectl create namespace awx --dry-run=client -o yaml | kubectl apply -f -
