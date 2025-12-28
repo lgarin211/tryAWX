@@ -3,7 +3,6 @@
   hosts: localhost
   connection: local
   gather_facts: yes
-  become: yes  # Root access required to install packages
   tasks:
     - name: Update package cache (Ubuntu/Debian only)
       apt:
