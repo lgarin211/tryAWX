@@ -34,7 +34,7 @@
         fail_msg: "Critical: Disk {{ item.mount }} has less than 1GB free!"
         success_msg: "Disk {{ item.mount }} is Healthy."
       loop: "{{ ansible_mounts }}"
-      when: item.mount == '/'
+      when: item.size_total > 0
 
     - name: Check connectivity to progesio.com
       uri:
