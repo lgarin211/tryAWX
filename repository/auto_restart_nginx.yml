@@ -1,0 +1,43 @@
+---
+- name: Auto Restart Nginx (Watchdog)
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Get Nginx Pods
+      k8s_info:
+        kind: Pod
+        namespace: awx
+        label_selectors:
+          - app = my-nginx
+      register: pod_list
+
+    - name: Fail if Nginx not found
+      fail:
+        msg: '{"status": 0, "error": "Nginx pod not found"}'
+      when: pod_list.resources | length == 0
+
+    - name: Delete Nginx Pod (Simulate Kill/Restart)
+      k8s:
+        state: absent
+        kind: Pod
+        name: "{{ item.metadata.name }}"
+        namespace: awx
+      loop: "{{ pod_list.resources }}"
+
+    - name: Wait for Nginx to recover (New Pod to be Ready)
+      k8s_info:
+        kind: Pod
+        namespace: awx
+        label_selectors:
+          - app = my-nginx
+      register: new_pod_list
+      until: "new_pod_list.resources | length > 0 and new_pod_list.resources[0].status.containerStatuses[0].ready == true"
+      retries: 10
+      delay: 5
+
+    - name: Output Success JSON
+      debug:
+        msg: '{"status": 1}'
